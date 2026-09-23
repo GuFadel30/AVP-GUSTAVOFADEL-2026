@@ -11,44 +11,32 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   async function handleRegister(event) {
-    // TODO: impedir o comportamento padrão do formulário.
-    event.preventDefault(); // Preparação mínima: a página não recarrega durante a aula.
-
-    // TODO: limpar mensagens anteriores de erro e sucesso.
+    event.preventDefault();
     setError("");
     setSuccess("");
 
-    // TODO: validar se name, email e password foram preenchidos.
     if (!name || !email || !password) {
       setError("Preencha todos os campos");
       return;
     }
 
     try {
-      // TODO: ativar loading.
       setLoading(true);
 
-      // TODO: chamar POST /auth/register usando api.post.
-      // TODO: enviar name, email e password no body.
       await api.post("/auth/register", { name, email, password });
 
-      // TODO: mostrar mensagem de sucesso se o cadastro funcionar.
       setSuccess("Cadastro realizado com sucesso");
-      // TODO: limpar os campos após cadastro.
       setName("");
       setEmail("");
       setPassword("");
     } catch (error) {
-      // TODO: mostrar mensagem de erro se o backend retornar erro.
       const message =
         error.response?.data?.message || "Erro ao cadastrar usuário";
 
       setError(message);
     } finally {
-      // TODO: desativar loading no final.
       setLoading(false);
     }
-    // Dica: use try/catch/finally para separar sucesso, erro e loading.
   }
 
   return (

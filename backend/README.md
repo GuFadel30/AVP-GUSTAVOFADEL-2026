@@ -6,7 +6,7 @@ Este projeto é uma base para a aula prática de Desenvolvimento de Sistemas Web
 
 **cadastro → hash de senha → login → sessão/token → middleware → rota protegida**
 
-As partes principais da autenticação contêm `TODOs`. Elas não estão prontas: serão implementadas pelos alunos durante a aula e depois poderão ser adaptadas aos projetos de TCC.
+O fluxo completo de autenticação está implementado e pode ser adaptado aos projetos de TCC.
 
 ## 2. Tecnologias usadas
 
@@ -51,6 +51,13 @@ Tenha o Node.js e um servidor MySQL instalados. No terminal, dentro da pasta do 
 npm install
 ```
 
+Caso as dependências ainda não estejam instaladas, os comandos equivalentes são:
+
+```bash
+npm install express prisma @prisma/client bcrypt jsonwebtoken dotenv cors
+npm install -D nodemon
+```
+
 ## 5. Como configurar o `.env`
 
 Copie o arquivo de exemplo:
@@ -78,6 +85,7 @@ Com o MySQL funcionando e o `.env` configurado, execute:
 
 ```bash
 npx prisma migrate dev --name init
+npx prisma generate
 ```
 
 Esse comando cria as tabelas descritas em `prisma/schema.prisma` e gera o Prisma Client.
@@ -153,7 +161,36 @@ Depois de completar o login, envie o token no cabeçalho:
 Authorization: Bearer SEU_TOKEN_AQUI
 ```
 
-Enquanto os `TODOs` não forem completados, cadastro, login e middleware respondem com status `501`, indicando que são exercícios ainda não implementados.
+O cadastro responde com `201`, o login com `200` e as rotas protegidas respondem com `401` quando o token está ausente, inválido ou expirado.
+
+Resposta esperada do login:
+
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Ana Souza",
+    "email": "ana@email.com"
+  },
+  "token": "SEU_TOKEN_JWT"
+}
+```
+
+O token deve ser enviado nas próximas requisições:
+
+```text
+Authorization: Bearer SEU_TOKEN_JWT
+```
+
+Resposta esperada de `GET /users/profile`:
+
+```json
+{
+  "id": 1,
+  "name": "Ana Souza",
+  "email": "ana@email.com"
+}
+```
 
 ## 10. O que é hash de senha?
 
@@ -219,29 +256,11 @@ Primeiro roda `authMiddleware`. Somente quando ele chama `next()` o Express exec
 9. Se o token for válido, a rota é liberada.
 10. Se o token estiver ausente ou inválido, o acesso é bloqueado.
 
-## 16. Partes que os alunos precisam completar
+## 16. Implementação atual
 
-No `authController.js`:
+O `authController.js` valida os dados, usa bcrypt, impede emails duplicados, gera o JWT e nunca retorna a senha. O `authMiddleware.js` valida o formato Bearer, trata tokens inválidos e expirados, busca o usuário sem a senha e preenche `req.user`. O `userController.js` retorna somente `id`, `name` e `email`.
 
-- buscar usuário existente no cadastro;
-- gerar o hash da senha;
-- cadastrar o usuário no banco;
-- devolver o usuário sem a senha;
-- buscar usuário no login;
-- comparar a senha digitada com o hash;
-- gerar o JWT;
-- devolver token e dados básicos.
-
-No `authMiddleware.js`:
-
-- ler o cabeçalho `Authorization`;
-- verificar e separar o token;
-- validar o JWT;
-- buscar o usuário correspondente;
-- adicionar o usuário em `req.user`;
-- chamar `next()`.
-
-Depois de cada implementação, trate também casos como email já cadastrado, usuário inexistente, senha incorreta, token ausente e token inválido.
+Os principais erros tratados são email já cadastrado, usuário inexistente, senha incorreta, token ausente, token inválido, token expirado e usuário removido.
 
 ## 17. Checklist da aula
 
@@ -249,14 +268,14 @@ Depois de cada implementação, trate também casos como email já cadastrado, u
 - [ ] Acessei GET /health
 - [ ] Entendi a estrutura de pastas
 - [ ] Entendi o que é middleware
-- [ ] Completei a busca de usuário no cadastro
-- [ ] Completei o hash da senha no cadastro
-- [ ] Completei o cadastro no banco
-- [ ] Completei a busca de usuário no login
-- [ ] Completei a comparação de senha
-- [ ] Completei a geração do token
-- [ ] Completei a leitura do token no middleware
-- [ ] Completei a validação do token
+- [x] Completei a busca de usuário no cadastro
+- [x] Completei o hash da senha no cadastro
+- [x] Completei o cadastro no banco
+- [x] Completei a busca de usuário no login
+- [x] Completei a comparação de senha
+- [x] Completei a geração do token
+- [x] Completei a leitura do token no middleware
+- [x] Completei a validação do token
 - [ ] Completei o req.user
 - [ ] Testei a rota protegida sem token
 - [ ] Testei a rota protegida com token válido

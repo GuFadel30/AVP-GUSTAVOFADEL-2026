@@ -1,6 +1,6 @@
-# Frontend de autenticação — template-esqueleto
+# Frontend de autenticação — template de autenticação
 
-Este projeto foi feito para aulas do 3º ano do Ensino Médio Técnico em Informática. As telas, os formulários, as rotas e as funções já existem. A integração com o backend foi deixada com comentários `TODO` para que alunos e professor a construam juntos. Ao instalar o projeto, as telas públicas abrem, mas cadastro, login, consulta do perfil e logout **ainda não funcionam**. A rota `/protegida` redireciona para `/login` até que a leitura do token seja completada.
+Este projeto foi feito para aulas do 3º ano do Ensino Médio Técnico em Informática. As telas, os formulários, as rotas e a integração com o backend estão implementados. O frontend usa o JWT recebido no login para acessar a rota protegida de perfil.
 
 ## Tecnologias e estrutura
 
@@ -64,12 +64,12 @@ No Tailwind v3, era comum usar três diretivas separadas (`@tailwind base`, `@ta
 | Arquivo | O que já existe | O que falta completar em aula |
 | --- | --- | --- |
 | `pages/Register.jsx` | Campos de nome, email e senha; estados `name`, `email`, `password`, `error`, `success`, `loading`; `handleRegister` | Validação, `api.post("/auth/register", ...)`, feedback e limpeza dos campos |
-| `pages/Login.jsx` | Campos de email e senha; estados `email`, `password`, `error`, `loading`; `handleLogin` e `useNavigate` | `api.post("/auth/login", ...)`, leitura do token, `saveToken`, feedback e navegação |
-| `pages/ProtectedPage.jsx` | Espaço para ID, nome e email; estados `user`, `error`, `loading`; `loadProfile`, `handleLogout` e `useEffect` | Leitura do token, `api.get("/users/profile", ...)`, header, tratamento de erro e logout |
+| `pages/Login.jsx` | Campos de email e senha; estados `email`, `password`, `error`, `loading`; `handleLogin` e `useNavigate` | Envia login, salva o token, exibe erros e navega para `/protegida` |
+| `pages/ProtectedPage.jsx` | Espaço para ID, nome e email; estados `user`, `error`, `loading`; `loadProfile`, `handleLogout` e `useEffect` | Busca o perfil com Bearer token, trata sessão inválida e executa logout |
 | `components/ProtectedRoute.jsx` | Estrutura para redirecionar sem token e renderizar a página com token | Revisar `isAuthenticated()` após implementar a leitura do token |
 | `services/auth.js` | `saveToken(token)`, `getToken()`, `removeToken()` e `isAuthenticated()` | Completar as operações com `localStorage` |
 
-Os comentários `TODO` dentro das funções indicam a sequência de trabalho. `handleRegister` e `handleLogin` já impedem o recarregamento padrão do formulário; as demais etapas foram deixadas para a aula. `loadProfile` já é chamado pelo `useEffect` ao abrir a página, mas ainda não faz uma requisição. `getToken()` retorna `null` e `isAuthenticated()` retorna `false` provisoriamente, então a proteção da rota ainda não permite entrar. O botão **Sair** também está pronto na interface, mas `handleLogout` ainda precisa remover o token e navegar para `/login`.
+O formulário de cadastro envia os dados para `POST /auth/register`. O login envia os dados para `POST /auth/login`, salva `data.token` no `localStorage` com a chave `auth_token` e navega para `/protegida`. A página protegida envia `Authorization: Bearer TOKEN` para `GET /users/profile`. Tokens ausentes, inválidos ou expirados removem a sessão e redirecionam para `/login`.
 
 ## Fluxo esperado, a implementar em aula
 
@@ -87,7 +87,7 @@ Os comentários `TODO` dentro das funções indicam a sequência de trabalho. `h
 12. Se o token for válido, backend retorna os dados do usuário.
 13. Frontend mostra que o login foi feito com sucesso e exibe ID, nome e email.
 
-No cadastro, a turma completará a validação dos campos, o corpo `{ name, email, password }`, as mensagens de sucesso ou erro e a limpeza do formulário. No login, completará o corpo `{ email, password }`, verificará onde o backend coloca o token na resposta e chamará `saveToken`. Na página protegida, completará `loadProfile` para ler o token, enviar `GET /users/profile` com `Authorization: Bearer ${token}`, salvar o usuário em `user` e tratar token inválido. No logout, chamará `removeToken` e redirecionará para `/login`.
+O cadastro, login, carregamento do perfil e logout já tratam estados de sucesso, erro e carregamento. A proteção de navegação no frontend é apenas uma conveniência; a validação real continua sendo feita pelo middleware do backend.
 
 Guardar e enviar o token no frontend permite controlar a navegação, mas isso não substitui a segurança do backend. `ProtectedRoute` só melhora a experiência de quem usa a aplicação. A proteção real é o middleware do backend, que deve validar o JWT a cada requisição protegida, mesmo se alguém tentar acessar a API diretamente ou burlar o frontend.
 
